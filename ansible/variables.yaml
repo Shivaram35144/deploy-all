@@ -1,0 +1,4 @@
+springboot_api_1_image: "your-dockerhub-username/springboot-api-1"
+springboot_api_2_image: "your-dockerhub-username/springboot-api-2"
+springboot_api_1_tag: "latest"
+springboot_api_2_tag: "latest"

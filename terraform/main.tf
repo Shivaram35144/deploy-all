@@ -31,3 +31,15 @@ Creation Time:
   ${timestamp()}
 EOT
 }
+
+resource "local_file" "inventoryForAnsible" {
+  filename = "${path.module}/../ansible/inventory"
+  content  = <<EOT
+all:
+  hosts:
+    ec2-inst-1:
+      ansible_host: ${module.ec2.ec2-public-ip}
+      ansible_ssh_user: ec2-user
+      ansible_ssh_private_key_file: key-pair-ec2
+EOT
+}

@@ -1,0 +1,60 @@
+---
+#WORKS ONLY FOR AMAZON LINUX 
+
+- name: Configure ec2-inst-1 from scratch start
+  hosts: all
+  become: yes
+  vars_files:
+    - variables.yaml
+  tasks:
+    #1 Update the stuffs
+    - name: Install Docker, Git
+      yum:
+        name: 
+          - docker
+          - git
+        state: present 
+        update_cache: true
+    
+    # 2. Start the docker Service
+    - name: Start Docker Service
+      service:
+        name: docker
+        state: started
+        enabled: true
+    
+    # 3. Add ec2 user to the docker group
+    - name: Add ec2-user to docker group
+      command: usermod -aG docker ec2-user
+
+    # 4. Pull the docker images from the docker hub
+    - name: Run Docker container for Spring Boot API 1
+      docker_container:
+        name: springboot-api-1
+        image: "{{ springboot_api_1_image }}:{{ springboot_api_1_tag }}"
+        state: started
+        ports:
+          - "8081:8080"
+
+    - name: Run Docker container for Spring Boot API 2
+      docker_container:
+        name: springboot-api-2
+        image: "{{ springboot_api_2_image }}:{{ springboot_api_2_tag }}"
+        state: started
+        ports:
+          - "8082:8080"
+    
+    # 5. Output the running containers
+
+    - name: Output running containers
+      command: docker ps
+      register: docker_ps_output
+
+    - name: Display running containers
+      debug:
+        var: docker_ps_output.stdout_lines
+
+    - name: Write running containers to a file
+      copy:
+        content: "{{ docker_ps_output.stdout }}"
+        dest: /ansibleOutput/docker_ps_output.txt

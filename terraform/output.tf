@@ -6,3 +6,5 @@ output "s3_bucket_details" {
   value = module.s3
 }
 
+#all outoputs are stored in aws_details folder
+
