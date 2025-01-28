@@ -1,27 +1,88 @@
 ---
 #WORKS ONLY FOR AMAZON LINUX 
 
-- name: Configure ec2-inst-1 from scratch start
+- name: Configure ec2-inst-1 from scratch
   hosts: all
   become: yes
   vars_files:
     - variables.yaml
   tasks:
-    #1 Update the stuffs
+    #1 Install stuff
     - name: Install Docker, Git
       yum:
         name: 
           - docker
           - git
+          - java-11-openjdk 
+          - jenkins
         state: present 
         update_cache: true
-    
-    # 2. Start the docker Service
+    # 2. Start the Services
     - name: Start Docker Service
       service:
         name: docker
         state: started
         enabled: true
+    - name: Start Jenkins Service
+      service:
+        name: jenkins
+        state: started
+        enabled: true
+    
+    # Configure Jenkins
+    - name: Install Jenkins plugins
+      jenkins_plugin:
+        name: 
+          - workflow-aggregator
+          - github
+          - docker-workflow
+          - pipeline-github
+        state: present
+      notify: restart jenkins
+
+    - name: Restart Jenkins (if needed)
+      service:
+        name: jenkins
+        state: restarted
+      when: ansible_facts.packages['jenkins'] is defined
+
+    - name: Wait for Jenkins to come online
+      uri:
+        url: http://localhost:8080
+        status_code: 200
+      retries: 10
+      delay: 15
+      register: jenkins_status
+      until: jenkins_status.status == 200
+
+    - name: Create Jenkins admin user
+      shell: |
+        cat <<EOF > /var/lib/jenkins/init.groovy.d/createAdminUser.groovy
+        import jenkins.model.*
+        import hudson.security.*
+        def instance = Jenkins.getInstance()
+        def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+        hudsonRealm.createAccount('{{ jenkins_admin_user }}', '{{ jenkins_admin_password }}')
+        instance.setSecurityRealm(hudsonRealm)
+        instance.save()
+        EOF
+      notify: restart jenkins
+    
+    - name: Configure Jenkins pipeline job
+      jenkins_job:
+        name: spring-boot-pipeline
+        config: "{{ lookup('file', '../jenkins/pipeline-config.xml') }}"
+    
+    # First-time pipeline trigger
+    - name: Trigger Jenkins pipeline job manually
+      uri:
+        url: "http://localhost:8080/job/spring-boot-pipeline/build"
+        method: POST
+        user: "{{ jenkins_admin_user }}"
+        password: "{{ jenkins_admin_password }}"
+        status_code: 201
+    
+    
     
     # 3. Add ec2 user to the docker group
     - name: Add ec2-user to docker group

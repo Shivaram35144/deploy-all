@@ -1,0 +1,41 @@
+pipeline{
+    agent any 
+    triggers{
+        githubPush()
+    }
+    stages{
+        stage('Build'){ //build using maven
+            steps{
+                script{
+                    sh 'mvn clean package -f app1/pom.xml'
+                    sh 'mvn clean package -f app2/pom.xml'
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    // Build Docker image for app1
+                    sh 'docker build -t app1-image ./docker/app1'
+
+                    // Build Docker image for app2
+                    sh 'docker build -t app2-image ./docker/app2'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker run -d --name app1 -p 8081:8080 app1-image'
+                sh 'docker run -d --name app2 -p 8082:8080 app2-image'
+            }
+        }
+    }
+    post {
+        always {
+            // Clean up unused Docker images and containers (optional)
+            sh 'docker system prune -f'
+        }
+    }
+}
