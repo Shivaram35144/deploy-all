@@ -1,0 +1,6 @@
+**/*.pub
+**/key-pair-ec2
+
+**/.terraform
+**/terraform.lock.hcl
+**/terraform.tfstate
