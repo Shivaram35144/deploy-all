@@ -8,7 +8,7 @@
     - variables.yaml
   tasks:
     #1 Install stuff
-    - name: Install Docker, Git
+    - name: Install Docker, Git, Java, Jenkins
       yum:
         name: 
           - docker
@@ -28,6 +28,8 @@
         name: jenkins
         state: started
         enabled: true
+    
+    
     
     # Configure Jenkins
     - name: Install Jenkins plugins
@@ -55,32 +57,7 @@
       register: jenkins_status
       until: jenkins_status.status == 200
 
-    - name: Create Jenkins admin user
-      shell: |
-        cat <<EOF > /var/lib/jenkins/init.groovy.d/createAdminUser.groovy
-        import jenkins.model.*
-        import hudson.security.*
-        def instance = Jenkins.getInstance()
-        def hudsonRealm = new HudsonPrivateSecurityRealm(false)
-        hudsonRealm.createAccount('{{ jenkins_admin_user }}', '{{ jenkins_admin_password }}')
-        instance.setSecurityRealm(hudsonRealm)
-        instance.save()
-        EOF
-      notify: restart jenkins
     
-    - name: Configure Jenkins pipeline job
-      jenkins_job:
-        name: spring-boot-pipeline
-        config: "{{ lookup('file', '../jenkins/pipeline-config.xml') }}"
-    
-    # First-time pipeline trigger
-    - name: Trigger Jenkins pipeline job manually
-      uri:
-        url: "http://localhost:8080/job/spring-boot-pipeline/build"
-        method: POST
-        user: "{{ jenkins_admin_user }}"
-        password: "{{ jenkins_admin_password }}"
-        status_code: 201
     
     
     
@@ -105,7 +82,7 @@
         ports:
           - "8082:8080"
     
-    # 5. Output the running containers
+    5. Output the running containers
 
     - name: Output running containers
       command: docker ps
