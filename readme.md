@@ -233,6 +233,8 @@ kubectl apply -f k8s/
 1. Develop
 2. Build using Maven
 3. Ensure CICD appropriately builds 
+```mvn clean install`` to build
+```java -jar <jarname>``` to run 8080 usually
 
 ## Day 7: Monitoring
 

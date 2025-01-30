@@ -7,8 +7,8 @@ pipeline{
         stage('Build'){ //build using maven
             steps{
                 script{
-                    sh 'mvn clean package -f app1/pom.xml'
-                    sh 'mvn clean package -f app2/pom.xml'
+                    sh 'pip install -r app1/requirements.txt'
+                    sh 'pip install -r app2/requirements.txt'
                 }
             }
         }
@@ -27,8 +27,8 @@ pipeline{
 
         stage('Deploy') {
             steps {
-                sh 'docker run -d --name app1 -p 8081:8080 app1-image'
-                sh 'docker run -d --name app2 -p 8082:8080 app2-image'
+                sh 'docker run -d --name app1 -p 8081:5000 app1-image'
+                sh 'docker run -d --name app2 -p 8082:5000 app2-image'
             }
         }
     }
