@@ -1,3 +1,0 @@
-In terraform -> ec2 -> create key-pair-ec2 as private key and key-pair-ec2.pub as public key
-
-In ansible put the private key file
