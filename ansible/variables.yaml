@@ -1,4 +1,4 @@
-springboot_api_1_image: "shivram35144/springboot-api-1"
-springboot_api_2_image: "shivram35144/springboot-api-2"
-springboot_api_1_tag: "latest"
-springboot_api_2_tag: "latest"
+flask_img_1: "shivram35144/flask-app-1"
+flask_img_2: "shivram35144/flask-app-2"
+flask_img_1_tag: "v2"
+flask_img_2_tag: "v2"
